@@ -1,0 +1,40 @@
+{
+  "name": "iota.lib.ts",
+  "version": "0.1.0",
+  "author": "Marco Paland <marco@paland.com>",
+  "license": "MIT",
+  "description": "Typescript library for IOTA",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mpaland/iota.lib.ts.git"
+  },
+  "keywords": [
+    "IOTA",
+    "Typescript",
+    "library"
+  ],
+  "bugs": {
+    "url": "https://github.com/mpaland/iota.lib.ts/issues"
+  },
+  "homepage": "https://github.com/mpaland/iota.lib.ts#readme",
+  "scripts": {
+    "build": "tsc -p ./src",
+    "pretest": "tsc -p ./test",
+    "test": "mocha ./test/out/test/**/*_test.js",
+    "dev": "lite-server"
+  },
+  "dependencies": {
+    "mipher": "^1.0.3",
+    "bignumber.js": "^5.0.0",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "lite-server": "latest",
+    "ts-node": "^4.0.2",
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1",
+    "@types/chai": "^4.0.10",
+    "@types/mocha": "^2.2.44"
+  }
+}
