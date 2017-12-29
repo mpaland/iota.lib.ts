@@ -24,17 +24,18 @@
     "dev": "lite-server"
   },
   "dependencies": {
-    "mipher": "^1.0.3",
+    "mipher": "^1.1.1",
     "bignumber.js": "^5.0.0",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "typescript": "latest",
     "lite-server": "latest",
-    "ts-node": "^4.0.2",
+    "ts-node": "^4.1.0",
     "chai": "^4.1.2",
     "mocha": "^4.0.1",
     "@types/chai": "^4.0.10",
-    "@types/mocha": "^2.2.44"
+    "@types/mocha": "^2.2.45",
+    "@types/bignumber.js": "^4.0.3"
   }
 }
