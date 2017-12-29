@@ -27,6 +27,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+import { BigNumber } from 'bignumber.js';
+
 
 export namespace Convert {
 
@@ -35,33 +37,33 @@ export namespace Convert {
 
   // map of all trits representations
   const TRYTE_TRITS = [
-    [ 0,  0,  0],   // 9
-    [ 1,  0,  0],   // A
-    [-1,  1,  0],   // B
-    [ 0,  1,  0],   // C
-    [ 1,  1,  0],   // D
-    [-1, -1,  1],   // E
-    [ 0, -1,  1],   // F
-    [ 1, -1,  1],   // G
-    [-1,  0,  1],   // H
-    [ 0,  0,  1],   // I
-    [ 1,  0,  1],   // J
-    [-1,  1,  1],   // K
-    [ 0,  1,  1],   // L
-    [ 1,  1,  1],   // M
-    [-1, -1, -1],   // N
-    [ 0, -1, -1],   // O
-    [ 1, -1, -1],   // P
-    [-1,  0, -1],   // Q
-    [ 0,  0, -1],   // R
-    [ 1,  0, -1],   // S
-    [-1,  1, -1],   // T
-    [ 0,  1, -1],   // U
-    [ 1,  1, -1],   // V
-    [-1, -1,  0],   // W
-    [ 0, -1,  0],   // X
-    [ 1, -1,  0],   // Y
-    [-1,  0,  0]    // Z
+    [ 0,  0,  0],   // 9,   0
+    [ 1,  0,  0],   // A,   1
+    [-1,  1,  0],   // B,   2
+    [ 0,  1,  0],   // C,   3
+    [ 1,  1,  0],   // D,   4
+    [-1, -1,  1],   // E,   5
+    [ 0, -1,  1],   // F,   6
+    [ 1, -1,  1],   // G,   7
+    [-1,  0,  1],   // H,   8
+    [ 0,  0,  1],   // I,   9
+    [ 1,  0,  1],   // J,  10
+    [-1,  1,  1],   // K,  11
+    [ 0,  1,  1],   // L,  12
+    [ 1,  1,  1],   // M,  13
+    [-1, -1, -1],   // N, -13
+    [ 0, -1, -1],   // O, -12
+    [ 1, -1, -1],   // P, -11
+    [-1,  0, -1],   // Q, -10
+    [ 0,  0, -1],   // R,  -9
+    [ 1,  0, -1],   // S,  -8
+    [-1,  1, -1],   // T,  -7
+    [ 0,  1, -1],   // U,  -6
+    [ 1,  1, -1],   // V,  -5
+    [-1, -1,  0],   // W,  -4
+    [ 0, -1,  0],   // X,  -3
+    [ 1, -1,  0],   // Y,  -2
+    [-1,  0,  0]    // Z,  -1
   ];
 
 
@@ -106,14 +108,14 @@ export namespace Convert {
 
 
   /**
-   * Converts trits into trytes
+   * Converts trits into trytes (3 trits ^= 1 tryte)
    * @param {Int8Array} trits
    * @return {String} trytes
    */
-   export function trits2trytes(trits: Int8Array): string {
+  export function trits2trytes(trits: Int8Array): string {
     // check input
     if (trits.length % 3) {
-      return null;  // trits length not multiple of 3, return null
+      throw new Error('Convert: Trits length not multiple of 3');
     }
 
     let trytes = '';
@@ -140,7 +142,7 @@ export namespace Convert {
   export function trits2number(trits: Int8Array): number {
     // check input
     if (trits.length % 3) {
-      return null;  // trits length not multiple of 3, return null
+      throw new Error('Convert: Trits length not multiple of 3');
     }
 
     let num = 0;
@@ -202,6 +204,122 @@ export namespace Convert {
       str += String.fromCharCode(first + second * TRYTE_VALUES.length);
     }
     return str;
+  }
+
+
+  /**
+   * Convert Trits to a byte array
+   * The byte array is returned in reverse order, most significant byte is #0, LSB is #47
+   * @param {Int8Array} trits 243 trits array to convert
+   * @returns {Uint8Array} 48 byte array
+   */
+  export function trits2bin(trits: Int8Array): Uint8Array {
+    // check input
+    if (trits.length !== 243) {
+      return null;
+    }
+
+    // set trit #242 to zero to prevent overflow, cause this would set bit #47 in result, which is the sign bit
+    trits[242] = 0;
+
+    // trits to bignum
+    let bn = new BigNumber(0);
+    for (let i = trits.length; i-- > 0;) {
+      // Multiply by 3 and add the respective trit value
+      bn = bn.mul(new BigNumber(3)).add(new BigNumber(trits[i]));
+    }
+
+    // bignum to bytes
+    let bin = new Uint8Array(48);
+    let abs = bn.abs();
+    for (let i = 0; i < bin.length; i++) {
+      bin[i] = abs.mod(256).toNumber();
+      abs = abs.divToInt(256);
+    }
+    // two's complement
+    if (bn.isNeg()) {
+      // bitwise xor
+      bin = bin.map((x) => {
+        return ~x;
+      });
+      // add one
+      let carry = true;
+      for (let i = 0; i < bin.length; i++) {
+        let tmp = bin[i] + (carry ? 1 : 0);
+        bin[i] = tmp & 0xFF;
+        carry = !!(tmp & 0x100);
+        if (!carry) {
+          break;
+        }
+      }
+    }
+    return bin.reverse();
+  }
+
+
+  /**
+   * Convert a byte array into Trits
+   * The byte array is given in reverse order, most significant byte is #0, LSB is #47
+   * @param {Uint8Array} bin 48 byte array to convert
+   * @return {Int8Array} 243 trits array
+   */
+  export function bin2trits(bin: Uint8Array): Int8Array {
+    // check input
+    if (bin.length !== 48) {
+      return null;
+    }
+
+    // reverse the byte array
+    bin.reverse();
+
+    // two's complement
+    let sign = 1;
+    if (bin[bin.length - 1] & 0x80) {
+      // negative
+      sign = -1;
+      // bitwise xor
+      bin = bin.map((x) => {
+        return ~x;
+      });
+      // add one
+      let carry = true;
+      for (let i = 0; i < bin.length; i++) {
+        let tmp = bin[i] + (carry ? 1 : 0);
+        bin[i] = tmp & 0xFF;
+        carry = !!(tmp & 0x100);
+        if (!carry) {
+          break;
+        }
+      }
+    }
+
+    // bytes to bignum
+    let bn = new BigNumber(0);
+    for (let i = bin.length; i-- > 0 ;) {
+      bn = bn.mul(256);
+      bn = bn.add(bin[i]);
+    }
+    bn = bn.mul(sign);
+
+    // bignum to trits
+    let trits = new Int8Array(243);
+    let rem, abs = bn.abs();
+    for (let i = 0; i < trits.length; i++) {
+      rem = abs.mod(3);
+      abs = abs.divToInt(3);
+      if (rem.gt(1)) {
+        rem = new BigNumber(-1);
+        abs = abs.add(1);
+      }
+      trits[i] = rem.toNumber();
+    }
+    if (bn.isNeg()) {
+      trits = trits.map((x) => {
+        return x === 0 ? 0 : -x;
+      });
+    }
+
+    return trits;
   }
 
 } // namespace Convert
