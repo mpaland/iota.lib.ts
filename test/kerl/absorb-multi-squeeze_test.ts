@@ -28,7 +28,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import { Kerl } from '../../src/crypto/kerl';
-import { Convert } from '../../src/crypto/convert/convert';
+import { Convert } from '../../src/crypto/convert';
 
 import { expect, assert } from 'chai';
 import 'mocha';

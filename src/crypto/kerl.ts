@@ -28,7 +28,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-import { Convert } from './convert/convert';
+import { Convert } from './convert';
 import { Keccak_384 } from 'mipher';
 
 
