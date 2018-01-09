@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // \author (c) Marco Paland (marco@paland.com)
-//             2017, PALANDesign Hannover, Germany
+//             2017-2018, PALANDesign Hannover, Germany
 //
 // \license The MIT License (MIT)
 //
@@ -34,18 +34,23 @@ import { Keccak_384 } from 'mipher';
 
 export class Kerl {
   // hash length
-  // static BIT_HASH_LENGTH: number = 384;
   static HASH_LENGTH: number = 243;
 
   sha3: Keccak_384;
 
 
+  /**
+   * ctor
+   */
   constructor() {
     // create new hasher
     this.sha3 = new Keccak_384();
   }
 
 
+  /**
+   * reset hasher
+   */
   reset(): void {
     this.sha3.init();
   }
@@ -53,9 +58,9 @@ export class Kerl {
 
   /**
    * The trits will be absorbed trits[offset:offset+length], in chunks of 243.
-   * Each 243-trit chunk’s last trit zeroed-out, then converted to 384-bits and absorbed by keccak.
+   * Each 243-trit chunk’s last trit zeroed-out, then converted to 384-bits and absorbed by Keccak
    * @param {Int8Array} trits Array of trits to be absorbed
-   * @param {Number} offset Offset in array to start absorbing from
+   * @param {Number} offset Offset in array to start absorbing from, defaults to 0
    */
   absorb(trits: Int8Array, offset: number = 0): void {
     // check input
@@ -79,8 +84,12 @@ export class Kerl {
     } while (offset < trits.length);
   }
 
-
-  squeeze(trits: Int8Array, offset: number): void {
+  /**
+   * Squeeze function
+   * @param {Int8Array} trits to squeeze
+   * @param {Number} offset Optional offset, defaults to 0
+   */
+  squeeze(trits: Int8Array, offset: number = 0): void {
     // check input
     if ((trits.length % Kerl.HASH_LENGTH) !== 0) {
       throw new Error('Kerl: illegal squeeze length');
