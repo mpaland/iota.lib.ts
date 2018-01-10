@@ -70,7 +70,7 @@ export namespace Convert {
   /**
    * Convert trytes into trits
    * @param {String|Number} input Tryte value to be converted. Can either be string or int
-   * @return {Int8Array} trits
+   * @return {Int8Array} trits array
    */
   export function trytes2trits(trytes: string | number): Int8Array {
     if (typeof trytes === 'number') {
@@ -131,6 +131,17 @@ export namespace Convert {
       }
     }
     return trytes;
+  }
+
+
+  /**
+   * Convert an integer value to trits
+   * (wrapper for trytes2trits with number input)
+   * @param {Number} value Integer value to convert
+   * @return {Int8Array} trits array
+   **/
+  export function number2trits(value: number): Int8Array {
+    return trytes2trits(value);
   }
 
 
