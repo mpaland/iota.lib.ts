@@ -76,26 +76,28 @@ export class Curl {
    * @param {Number} offset Offset in array to start absorbing from
    */
   absorb(trits: Int8Array, offset: number = 0): void {
+    let length = trits.length;
     do {
-      let s = 0;
-      for (let i = offset; i < trits.length && s < Curl.HASH_LENGTH; i++) {
-        this.state[s++] = trits[i];
+      let i = 0;
+      let limit = (length < Curl.HASH_LENGTH ? length : Curl.HASH_LENGTH);
+      while (i < limit) {
+        this.state[i++] = trits[offset++];
       }
-      offset += s;
       this.transform();
-    } while (offset < trits.length);
+    } while ((length -= Curl.HASH_LENGTH) > 0);
   }
 
 
   /**
    * Sponge squeeze function
-   * @param {Int8Array} trits to squeeze
+   * @param {Int8Array} trits to squeeze, data is returned in this array
    * @param {Number} offset Optional offset, defaults to 0
    */
   squeeze(trits: Int8Array, offset: number = 0): void {
+    let length = trits.length;
     do {
-      let i = 0, length = trits.length;
-      var limit = (length < Curl.HASH_LENGTH ? length : Curl.HASH_LENGTH);
+      let i = 0;
+      let limit = (length < Curl.HASH_LENGTH ? length : Curl.HASH_LENGTH);
       while (i < limit) {
         trits[offset++] = this.state[i++];
       }
@@ -106,8 +108,9 @@ export class Curl {
 
   /**
    * Sponge transform function
+   * @private
    */
-  transform(): void {
+  private transform(): void {
     let index = 0;
     for (let round = 0; round < this.rounds; round++) {
       let stateCopy = this.state.slice();
